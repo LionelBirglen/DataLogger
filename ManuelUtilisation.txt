@@ -1,0 +1,68 @@
+Instructions pour utilisation du capteur de courant et tension :
+----------------------------------------------------------------
+
+Specifications :
+----------------
+courant -8A min / +8A max
+tension  0V min / +26V max 
+
+----------------------------------------------------------------
+IMPORTANT : 
+NE JAMAIS CONNECTER UNE TENSION NEGATIVE ENTRE VIN+ et GND
+NE JAMAIS CONNECTER L'ALIMENTATION DU TEENSY A L'ENVERS
+----------------------------------------------------------------
+
+Explication des LEDs :
+----------------------
+vert solide : enregistrement des donnees en cours
+rouge solide : ecriture des donnees sur la carte SD
+clignotement alterné rouge - vert : en attente de démarrage (voir commande paddle switch rouge)
+clignotement vert : l'enregistrement des donnees est fini, l'ecriture des donnees va commencer
+clignotement rouge : l'ecriture des donnees est finie, on va recommencer soit l'enregistrement soit l'attente de démarrage
+aucune lumière 2s après mise sous tension : carte SD non detectee
+
+-> Ne jamais débrancher la tension lorsque la LED est rouge solide, tous les autres moments sont ok.
+
+Interrupteurs :
+---------------
+
+Paddle switch vers USB = enregistrement en court
+	      vers exterieur = en attente
+
+dipswitch	1 - HIGH	(OFF)	  0 - LOW (ON)
+dipswitch 1    	courant ou tension    	- courant et tension		choix du nombre de signaux mesurés
+dipswitch 2    	courant               	- tension                 	sélection du signal, ignoré si "courant et tension"
+dipswitch 3    	echantillonage rapide 	- echantillonage lent          	500Hz - 5Hz (courant et tension) ou 1000Hz - 10Hz (courant ou tension)
+dipswitch 4    	enregistrement court   	- enregistrement long		court=2000 mesures, long=20000 mesures
+dipswitch 5    	filtrage actif        	- pas de filtre			zero phase passe bas 0.1Fs 4e ordre Butterworth
+dipswitch 6			PAS UTILISÉ
+
+Sauvegarde :
+------------
+Les fichiers écrits sur la carte SD sont au format CSV et le nom est "Mesures***date***_***heure***.csv"
+
+Notes :
+-------
+- CHARGE : IN+ DOIT ETRE POSITIF PAR RAPPORT A GND SINON DESTRUCTION INA219
+- TEENSY : VIN DOIT ETRE POSITIF PAR RAPPORT A GND SINON DESTRUCTION TEENSY
+- duree des enregistrements : 
+	2 signaux = 4s (rapide-court) ou 40s (rapide-long) 
+	2 signaux = 6min40s (lent-court) ou 1hr6min40s (A TESTER lent-long)
+	1 signal = 2s (rapide-court) ou 20s (rapide-long)
+	1 signal = 3min20s (lent-court) ou 33min20s (A TESTER lent-long)
+- le ina219 a une bande passante de 1000 Hz a -3dB donc autour de 100-200Hz max pour une precision realiste.
+- la date et l'heure sont sauvees par une pile CR2032 alimentant le RTC du Teensy. Devrait durer autour de 5 ans. 
+  batterie installee le 29 octobre 2021
+
+A faire :
+---------
+- calibrer la lecture de tension
+- ameliorer la calibration de courant (offset)
+- supporter l'echange de capteur (INA219 Stemma QT, INA260, INA169)
+- ajouter convertisseur buck-boost sur Vin Teensy, exemple www.adafruit.com/product/2190
+- ajouter double diode pour securiser alimentation Teensy www.pjrc.com/teensy/external_power.html
+- ajouter diode protection IN+ INA219 ?
+- ajouter calcul explicite Fc filtre dans programme
+- rendre programme plus robuste par rapport aux erreurs : INA219 absent, RTC repond pas (batt. vide), pas carte SD, etc.
+- remplacer Teensy 3.5 par Teensy 4.1
+- implanter conditions initiales non nulles dans algorithme de filtrage (DOI: 10.1109/78.492552)
